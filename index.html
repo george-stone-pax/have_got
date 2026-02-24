@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monster Lab: Level 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Глобальные настройки для свайпов и прокрутки */
+        html { height: 100%; }
+        body {
+            font-family: 'Comic Neue', cursive;
+            background-color: #f0fdf4; 
+            min-height: 100%;
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+            touch-action: pan-y;
+            user-select: none;
+        }
+        /* Полноэкранный режим */
+        :fullscreen {
+            background-color: #f0fdf4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+        /* Гарантируем, что канвас не перехватывает свайпы */
+        canvas { touch-action: pan-y; }
+        .monster-canvas {
+            background: radial-gradient(circle, #ffffff 0%, #e0f2fe 100%);
+            border: 4px solid #3b82f6;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .btn-game { transition: all 0.2s; }
+        .btn-game:active:not(:disabled) { transform: scale(0.95); }
+        .bubble {
+            position: relative;
+            background: #ffffff;
+            border-radius: .4em;
+        }
+        .bubble:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border: 20px solid transparent;
+            border-top-color: #ffffff;
+            border-bottom: 0;
+            margin-left: -20px;
+            margin-bottom: -20px;
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(-5px); }
+            50% { transform: translateY(5px); }
+        }
+        .animate-float { animation: bounce-slow 3s infinite ease-in-out; }
+        .control-row { transition: opacity 0.3s; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center relative bg-slate-100">
+
+    <script>
+        // ЗАЩИТА ИГРЫ С ИСКЛЮЧЕНИЕМ ДЛЯ LOCALHOST
+        (function() {
+            const allowedDomains = ['stepik.org', 'welcome.stepik.org'];
+            const referrer = document.referrer;
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            
+            // Проверка на запуск с компьютера или локального сервера
+            const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || protocol === 'file:' || hostname === '';
+            // Проверка на встроенность в Stepik
+            const isInsideStepik = allowedDomains.some(domain => referrer.includes(domain));
+
+            if (!isInsideStepik && !isLocal) {
+                document.body.innerHTML = `
+                    <div style="background:#000; color:#fff; height:100vh; display:flex;
+                                flex-direction:column; align-items:center; justify-content:center;
+                                font-family:sans-serif; text-align:center; padding:20px;">
+                        <h1>⛔️ Доступ ограничен</h1>
+                        <p>Эта игра — часть платного курса. <br>
+                        Пожалуйста, вернитесь к обучению на Stepik.</p>
+                        <a href="https://stepik.org" style="color:#4ade80;">Перейти к курсу</a>
+                    </div>`;
+                window.stop();
+            }
+            
+            // Блокировка прокрутки при нажатии стрелок (согласно прошлым требованиям)
+            window.addEventListener('keydown', function(e) {
+                if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+                    e.preventDefault();
+                }
+            }, false);
+        })();
+    </script>
+
+    <!-- Top Tools (Volume & Fullscreen) -->
+    <div class="fixed top-4 right-4 z-[60] flex gap-2">
+        <div class="bg-white p-2 rounded-lg shadow-md flex items-center gap-2 border border-gray-200">
+            <span class="text-xl">🎵</span>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" class="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+        </div>
+        <button onclick="toggleFullScreen()" class="bg-white p-2 rounded-lg shadow-md border border-gray-200 hover:bg-gray-50 text-2xl font-bold w-12 h-12 flex items-center justify-center">
+            ⛶
+        </button>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="startScreen" class="fixed inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 z-50 flex flex-col items-center justify-center text-white text-center p-4 overflow-y-auto">
+        <h1 class="text-5xl md:text-6xl font-bold mb-4 drop-shadow-md mt-10">Monster Lab 2.0 🧪</h1>
+        <p class="text-xl mb-6">Тема: Have got / Has got (Singular & Plural)</p>
+        
+        <div class="bg-white text-gray-800 p-6 rounded-xl shadow-xl max-w-lg mb-6 mx-4 text-left">
+            <h2 class="text-2xl font-bold mb-2 text-center text-purple-600">Как играть?</h2>
+            <ul class="list-disc pl-5 text-lg space-y-2">
+                <li>Внимательно читай заказ (сверху).</li>
+                <li>Настраивай только то, о чем просит монстр, с помощью кнопок «+» и «-».</li>
+                <li>Обращай внимание: <b>one tooth</b> (один зуб), но <b>two teeth</b> (два зуба).</li>
+                <li>Затем выбери правильное описание монстра из предложенных вариантов.</li>
+            </ul>
+        </div>
+
+        <!-- Кнопки Теория и Старт -->
+        <button onclick="showTheory()" class="btn-game bg-cyan-400 hover:bg-cyan-300 text-cyan-900 font-bold py-3 px-8 rounded-full text-xl shadow-lg border-b-4 border-cyan-600 mb-4 transition w-64">
+            📚 ТЕОРИЯ
+        </button>
+        <button id="btnStartGame" onclick="startGame()" disabled class="btn-game bg-gray-400 text-gray-600 font-bold py-4 px-10 rounded-full text-2xl shadow-lg border-b-4 border-gray-600 mb-10 cursor-not-allowed flex items-center justify-center gap-2 w-64 transition duration-300">
+            <span>🔒</span> START
+        </button>
+    </div>
+
+    <!-- Theory Modal -->
+    <div id="theoryModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white text-gray-800 rounded-xl shadow-2xl p-6 max-w-lg w-full relative">
+            <h2 class="text-3xl font-bold text-cyan-600 mb-4 border-b-2 border-cyan-100 pb-2">Теория: Have got / Has got</h2>
+            <div class="space-y-4 text-lg">
+                <p>Мы используем <b>have got</b> или <b>has got</b>, чтобы сказать, что у кого-то что-то есть.</p>
+                <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                    <p><b>I / You / We / They</b> + <span class="text-blue-600 font-bold">have got</span></p>
+                    <p><b>He / She / It</b> + <span class="text-purple-600 font-bold">has got</span></p>
+                </div>
+                <h3 class="font-bold text-xl mt-4">Особые формы множественного числа (Исключения):</h3>
+                <ul class="list-disc pl-5">
+                    <li>1 <b>tooth</b> (зуб) ➔ 2 <b>teeth</b> (зубы)</li>
+                    <li>Но обычные слова: 1 <b>eye</b> ➔ 2 <b>eyes</b>, 1 <b>horn</b> ➔ 2 <b>horns</b>.</li>
+                </ul>
+            </div>
+            <button onclick="closeTheory()" class="mt-6 w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg shadow-md transition text-xl">
+                Я всё понял!
+            </button>
+        </div>
+    </div>
+
+    <!-- Game UI -->
+    <div id="gameUI" class="hidden w-full max-w-4xl flex flex-col items-center p-4 min-h-screen justify-start md:justify-center py-8 pb-32">
+        
+        <!-- Score Display (Top Left) -->
+        <div class="fixed top-4 left-4 z-[40] bg-white px-4 py-2 rounded-lg shadow-md border border-green-200 text-2xl font-bold text-green-600">
+            Score: <span id="scoreDisplay">0</span>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="flex flex-col md:flex-row gap-6 w-full items-start justify-center pt-8 md:pt-0">
+            
+            <!-- Left: The Monster Canvas -->
+            <div class="relative animate-float self-center">
+                <canvas id="monsterCanvas" width="350" height="400" class="monster-canvas bg-white"></canvas>
+                <!-- Speaking bubble prompt -->
+                <div id="speakPrompt" class="hidden absolute -top-10 left-1/2 transform -translate-x-1/2 w-64 bg-yellow-100 border-2 border-yellow-400 p-2 rounded text-center shadow-lg bubble z-20 group cursor-help transition-all duration-300">
+                    <p class="text-sm font-bold text-yellow-800 block group-hover:hidden">🗣️ Say it loud!</p>
+                    <p class="text-sm font-bold text-yellow-800 hidden group-hover:block">🗣️ Скажи это вслух!</p>
+                </div>
+            </div>
+
+            <!-- Right: Controls & Task -->
+            <div class="flex flex-col w-full md:w-1/2 bg-white p-4 rounded-xl shadow-lg border-2 border-indigo-100">
+                
+                <!-- Task Text (Reading Phase) -->
+                <div id="taskArea" class="mb-4 text-center">
+                    <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 shadow-inner">
+                        <p id="taskText" class="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed">
+                            Loading...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Controls (Building Phase) -->
+                <div id="controlsArea" class="space-y-3">
+                    <!-- Eyes Control -->
+                    <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                        <span class="text-lg w-24 font-bold text-gray-700">👁️ Eyes</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="updatePart('eyes', -1)" class="btn-game bg-red-100 text-red-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-red-200">-</button>
+                            <span id="count-eyes" class="text-2xl font-bold w-8 text-center text-blue-600">1</span>
+                            <button onclick="updatePart('eyes', 1)" class="btn-game bg-green-100 text-green-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-green-200">+</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Horns Control -->
+                    <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                        <span class="text-lg w-24 font-bold text-gray-700">😈 Horns</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="updatePart('horns', -1)" class="btn-game bg-red-100 text-red-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-red-200">-</button>
+                            <span id="count-horns" class="text-2xl font-bold w-8 text-center text-blue-600">1</span>
+                            <button onclick="updatePart('horns', 1)" class="btn-game bg-green-100 text-green-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-green-200">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Teeth Control -->
+                    <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                        <span class="text-lg w-24 font-bold text-gray-700">🦷 Teeth</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="updatePart('teeth', -1)" class="btn-game bg-red-100 text-red-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-red-200">-</button>
+                            <span id="count-teeth" class="text-2xl font-bold w-8 text-center text-blue-600">1</span>
+                            <button onclick="updatePart('teeth', 1)" class="btn-game bg-green-100 text-green-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-green-200">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Arms Control -->
+                    <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                        <span class="text-lg w-24 font-bold text-gray-700">💪 Arms</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="updatePart('arms', -1)" class="btn-game bg-red-100 text-red-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-red-200">-</button>
+                            <span id="count-arms" class="text-2xl font-bold w-8 text-center text-blue-600">2</span>
+                            <button onclick="updatePart('arms', 1)" class="btn-game bg-green-100 text-green-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-green-200">+</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Legs Control -->
+                    <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                        <span class="text-lg w-24 font-bold text-gray-700">🦵 Legs</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="updatePart('legs', -1)" class="btn-game bg-red-100 text-red-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-red-200">-</button>
+                            <span id="count-legs" class="text-2xl font-bold w-8 text-center text-blue-600">2</span>
+                            <button onclick="updatePart('legs', 1)" class="btn-game bg-green-100 text-green-600 w-10 h-10 rounded-full font-bold text-xl hover:bg-green-200">+</button>
+                        </div>
+                    </div>
+
+                    <button onclick="checkBuild()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl shadow-lg transition transform active:scale-95 mt-4">
+                        Build Monster! 🛠️
+                    </button>
+                </div>
+
+                <!-- Speaking/Verification Phase (Hidden initially) -->
+                <div id="speakingArea" class="hidden space-y-3">
+                    <p class="text-center text-gray-600 font-bold">Найди правильное описание:</p>
+                    <div id="optionsContainer" class="grid grid-cols-1 gap-3">
+                        <!-- Options generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Feedback Area (Enhanced for Explanations) -->
+                <div id="feedbackMessage" class="hidden mt-4 text-center font-bold p-3 rounded-lg bg-opacity-20 border-2"></div>
+
+            </div>
+        </div>
+
+        <!-- Order Display (Bottom Left) -->
+        <div class="fixed bottom-4 left-4 z-[40] bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200 text-xl font-bold text-gray-700">
+            Order: <span id="levelDisplay">1/10</span>
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="endScreen" class="hidden fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <h2 class="text-5xl font-bold text-gray-800 mb-2 mt-8">Game Over!</h2>
+        <div class="text-7xl mb-4">🎉</div>
+        <p class="text-3xl mb-8">Результат: <span id="finalScore" class="font-bold text-blue-600">0</span></p>
+        
+        <div class="flex flex-col gap-4 w-full max-w-sm">
+            <button onclick="toggleCriteria()" class="bg-purple-100 text-purple-700 font-bold py-3 px-6 rounded-lg border-2 border-purple-300 hover:bg-purple-200 transition text-xl">
+                📊 Критерии оценки
+            </button>
+            <button onclick="location.reload()" class="bg-green-500 text-white font-bold py-4 px-6 rounded-lg hover:bg-green-600 shadow-lg text-xl transition">
+                Играть снова
+            </button>
+        </div>
+
+        <!-- Секретное слово (скрыто по умолчанию) -->
+        <div id="secretWordContainer" class="hidden mt-6 w-full max-w-sm">
+            <button onclick="revealSecret()" id="btnSecret" class="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:from-pink-600 hover:to-rose-600 transition w-full text-xl animate-pulse">
+                🎁 Показать СЕКРЕТНОЕ СЛОВО
+            </button>
+            <div id="secretWordDisplay" class="hidden text-2xl font-bold text-rose-600 bg-rose-100 p-4 rounded-lg border-2 border-rose-300 text-center w-full mt-2 transition-all">
+                Strong - Сильный
+            </div>
+        </div>
+
+        <!-- Criteria Modal -->
+        <div id="criteriaModal" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl border-4 border-purple-200 shadow-2xl w-80 z-[60]">
+            <h3 class="font-bold text-xl mb-4 text-center text-purple-700">Таблица оценок</h3>
+            <ul class="space-y-3 text-base">
+                <li class="flex justify-between border-b pb-1"><span class="font-bold text-green-600">«5»</span> <span>100–85%</span></li>
+                <li class="flex justify-between border-b pb-1"><span class="font-bold text-blue-600">«4»</span> <span>84–70%</span></li>
+                <li class="flex justify-between border-b pb-1"><span class="font-bold text-yellow-600">«3»</span> <span>69–50%</span></li>
+                <li class="flex justify-between"><span class="font-bold text-red-600">«2»</span> <span>< 50%</span></li>
+            </ul>
+            <button onclick="toggleCriteria()" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 py-2 rounded font-bold text-gray-700">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- Audio Configuration --- */
+        const sounds = {
+            wrong: new Audio('https://george-stone-pax.github.io/my-game-assets/dodgeball.mp3'),
+            correct: new Audio('https://george-stone-pax.github.io/my-game-assets/rightanswer-95219.mp3'),
+            bgMusic: new Audio('https://george-stone-pax.github.io/gamesnew/My_music4.mp3') // Changed track as requested
+        };
+
+        sounds.bgMusic.loop = true;
+        const volSlider = document.getElementById('volumeSlider');
+        
+        function updateVolume() {
+            const vol = volSlider.value;
+            sounds.bgMusic.volume = vol * 0.4;
+            sounds.correct.volume = vol;
+            sounds.wrong.volume = vol;
+        }
+        
+        volSlider.addEventListener('input', updateVolume);
+        updateVolume();
+
+        /* --- Fullscreen Feature --- */
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        /* --- Theory / Menu Logic --- */
+        function showTheory() {
+            document.getElementById('theoryModal').classList.remove('hidden');
+        }
+
+        function closeTheory() {
+            document.getElementById('theoryModal').classList.add('hidden');
+            // Разблокируем кнопку Старт
+            const startBtn = document.getElementById('btnStartGame');
+            startBtn.disabled = false;
+            startBtn.classList.remove('bg-gray-400', 'text-gray-600', 'cursor-not-allowed', 'border-gray-600');
+            startBtn.classList.add('bg-yellow-400', 'hover:bg-yellow-300', 'text-yellow-900', 'border-yellow-600');
+            startBtn.innerHTML = 'START GAME';
+        }
+
+        /* --- Game Data --- */
+        const gameConfig = {
+            totalQuestions: 10, // УВЕЛИЧЕНО ДО 10
+        };
+
+        let state = {
+            currentLevel: 0,
+            score: 0,
+            currentMonster: { eyes: 1, arms: 2, legs: 2, horns: 1, teeth: 2 },
+            currentTaskData: null,
+            phase: 'build' 
+        };
+
+        const NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven"];
+        const PARTS = ['eyes', 'horns', 'teeth', 'arms', 'legs'];
+        
+        const PART_VOCAB = {
+            'eyes': { sing: 'eye', plur: 'eyes' },
+            'horns': { sing: 'horn', plur: 'horns' },
+            'teeth': { sing: 'tooth', plur: 'teeth' },
+            'arms': { sing: 'arm', plur: 'arms' },
+            'legs': { sing: 'leg', plur: 'legs' }
+        };
+
+        function generateTask() {
+            const subjects = ["I", "He", "She"];
+            const subj = subjects[Math.floor(Math.random() * subjects.length)];
+            const verb = (subj === "I") ? "have got" : "has got";
+
+            const targetValues = {};
+            PARTS.forEach(part => {
+                targetValues[part] = Math.floor(Math.random() * 7) + 1;
+            });
+
+            const shuffledParts = [...PARTS].sort(() => 0.5 - Math.random());
+            const activeParts = shuffledParts.slice(0, 3);
+
+            const partsText = activeParts.map(part => {
+                const count = targetValues[part];
+                const label = (count === 1) ? PART_VOCAB[part].sing : PART_VOCAB[part].plur;
+                return `${NUM_WORDS[count]} ${label}`;
+            });
+
+            let desc = "";
+            if (partsText.length === 3) {
+                desc = `${partsText[0]}, ${partsText[1]} and ${partsText[2]}`;
+            } else {
+                desc = partsText.join(" and ");
+            }
+
+            const fullText = `${subj} ${verb} ${desc}.`;
+
+            return {
+                targetValues: targetValues,
+                activeParts: activeParts,
+                text: fullText,
+                subject: subj,
+                verb: verb
+            };
+        }
+
+        /* --- Canvas Drawing --- */
+        const canvas = document.getElementById('monsterCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawMonster(data) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 + 20;
+            const bodyW = 90;
+            const bodyH = 110;
+
+            // --- LEGS ---
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#F97316';
+            ctx.lineWidth = 12;
+            
+            const numLegs = data.legs;
+            if (numLegs > 0) {
+                const startAngle = Math.PI / 4; 
+                const endAngle = 3 * Math.PI / 4;
+                
+                for(let i=0; i<numLegs; i++) {
+                    const t = (numLegs === 1) ? 0.5 : i / (numLegs - 1);
+                    const legX = cx - bodyW * 0.7 + (bodyW * 1.4 * t);
+                    const legY = cy + bodyH * 0.75;
+
+                    ctx.beginPath();
+                    ctx.moveTo(legX, legY);
+                    ctx.lineTo(legX + (t - 0.5)*25, legY + 40); 
+                    const footX = legX + (t - 0.5)*35;
+                    const footY = legY + 75;
+                    ctx.lineTo(footX, footY);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#EA580C';
+                    ctx.beginPath();
+                    ctx.ellipse(footX, footY, 15, 8, 0, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            // --- ARMS ---
+            const numArms = data.arms;
+            if (numArms > 0) {
+                for(let i=0; i<numArms; i++) {
+                    const isLeft = i % 2 === 0;
+                    const sideDir = isLeft ? -1 : 1;
+                    const armIndex = Math.floor(i/2); 
+                    
+                    const armY = cy - 40 + (armIndex * 35);
+                    const armX = cx + (bodyW * 0.8 * sideDir);
+
+                    ctx.strokeStyle = '#84CC16';
+                    ctx.lineWidth = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(armX, armY);
+                    const elbowX = armX + (50 * sideDir);
+                    const elbowY = armY + 10;
+                    ctx.quadraticCurveTo(armX + (20*sideDir), armY - 20, elbowX, elbowY);
+                    const handX = elbowX + (30 * sideDir);
+                    const handY = elbowY - 10;
+                    ctx.lineTo(handX, handY);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#65A30D';
+                    ctx.beginPath();
+                    ctx.arc(handX, handY, 10, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#65A30D';
+                    ctx.lineWidth = 4;
+                    for(let f=0; f<3; f++) {
+                        ctx.beginPath();
+                        ctx.moveTo(handX, handY);
+                        ctx.lineTo(handX + (sideDir * 15), handY - 10 + (f*10));
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // --- BODY ---
+            ctx.fillStyle = (state.currentTaskData && state.currentTaskData.subject === "He") ? '#60A5FA' : 
+                            (state.currentTaskData && state.currentTaskData.subject === "She") ? '#F472B6' : '#A78BFA';
+            ctx.strokeStyle = '#4C1D95';
+            ctx.lineWidth = 4;
+            
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, bodyW, bodyH, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // --- HORNS ---
+            const numHorns = data.horns;
+            if (numHorns > 0) {
+                const minHAngle = Math.PI + 0.4;
+                const maxHAngle = 2*Math.PI - 0.4;
+                
+                for(let i=0; i<numHorns; i++) {
+                    const t = (numHorns === 1) ? 0.5 : i / (numHorns - 1);
+                    const angle = minHAngle + t * (maxHAngle - minHAngle);
+                    
+                    const hBaseX = cx + Math.cos(angle) * (bodyW - 5);
+                    const hBaseY = cy + Math.sin(angle) * (bodyH - 5);
+
+                    const curveDir = (angle > 1.5 * Math.PI) ? 1 : -1; 
+                    
+                    ctx.save();
+                    ctx.translate(hBaseX, hBaseY);
+                    ctx.rotate(angle + Math.PI/2);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 0);
+                    ctx.quadraticCurveTo(0, -30, curveDir * 10, -60);
+                    ctx.quadraticCurveTo(0, -30, 10, 0);
+                    ctx.closePath();
+                    
+                    ctx.fillStyle = '#FACC15';
+                    ctx.fill();
+                    ctx.strokeStyle = '#B45309';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.strokeStyle = '#D97706';
+                    ctx.lineWidth = 2;
+                    for(let s=1; s<4; s++) {
+                        ctx.beginPath();
+                        ctx.moveTo(-10, -s*12);
+                        ctx.lineTo(10, -s*12);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+            }
+
+            // --- EYES ---
+            const numEyes = data.eyes;
+            if (numEyes > 0) {
+                const eyePositions = [];
+                const eyeR = (numEyes > 4) ? 10 : 14; 
+
+                if (numEyes === 1) eyePositions.push({x:0, y:-30});
+                else if (numEyes === 2) { eyePositions.push({x:-25, y:-30}, {x:25, y:-30}); }
+                else if (numEyes === 3) { eyePositions.push({x:-30, y:-20}, {x:30, y:-20}, {x:0, y:-50}); }
+                else if (numEyes === 4) { eyePositions.push({x:-25, y:-45}, {x:25, y:-45}, {x:-25, y:-15}, {x:25, y:-15}); }
+                else if (numEyes === 5) { eyePositions.push({x:-40, y:-30}, {x:-15, y:-30}, {x:15, y:-30}, {x:40, y:-30}, {x:0, y:-60}); } 
+                else if (numEyes >= 6) { 
+                    for(let i=0; i<3; i++) eyePositions.push({x: -40 + i*40, y: -50});
+                    for(let i=0; i<(numEyes-3); i++) eyePositions.push({x: -30 + i*30, y: -20});
+                }
+
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                eyePositions.forEach(pos => {
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(cx + pos.x, cy + pos.y, eyeR, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath();
+                    ctx.arc(cx + pos.x, cy + pos.y, eyeR/3, 0, Math.PI*2);
+                    ctx.fill();
+                });
+            }
+
+            // --- MOUTH & TEETH ---
+            const mouthY = cy + 40;
+            ctx.fillStyle = '#5B21B6'; 
+            ctx.beginPath();
+            ctx.arc(cx, mouthY, 35, 0, Math.PI, false); 
+            ctx.fill();
+            ctx.strokeStyle = '#4C1D95';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            const numTeeth = data.teeth;
+            if (numTeeth > 0) {
+                ctx.fillStyle = 'white';
+                const teethWidth = 60; 
+                const toothW = teethWidth / numTeeth;
+                const startTx = cx - teethWidth/2;
+
+                for(let i=0; i<numTeeth; i++) {
+                    const tx = startTx + i*toothW + toothW/2;
+                    ctx.beginPath();
+                    ctx.moveTo(tx - toothW/2 + 2, mouthY); 
+                    ctx.lineTo(tx, mouthY + 15); 
+                    ctx.lineTo(tx + toothW/2 - 2, mouthY);
+                    ctx.fill();
+                }
+            }
+        }
+
+        /* --- Game Logic --- */
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameUI').classList.remove('hidden');
+            document.getElementById('gameUI').classList.add('flex');
+            
+            sounds.bgMusic.play().catch(e => console.log("Audio play failed"));
+            resetGame();
+        }
+
+        function resetGame() {
+            state.score = 0;
+            state.currentLevel = 0;
+            document.getElementById('scoreDisplay').innerText = state.score;
+            nextLevel();
+        }
+
+        function nextLevel() {
+            state.currentLevel++;
+            if (state.currentLevel > gameConfig.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            document.getElementById('levelDisplay').innerText = `${state.currentLevel}/${gameConfig.totalQuestions}`;
+            state.phase = 'build';
+            
+            state.currentMonster = { 
+                eyes: Math.floor(Math.random()*7)+1, 
+                arms: Math.floor(Math.random()*7)+1, 
+                legs: Math.floor(Math.random()*7)+1, 
+                horns: Math.floor(Math.random()*7)+1, 
+                teeth: Math.floor(Math.random()*7)+1 
+            };
+            
+            state.currentTaskData = generateTask();
+            
+            document.getElementById('taskArea').classList.remove('hidden');
+            document.getElementById('controlsArea').classList.remove('hidden');
+            document.getElementById('speakingArea').classList.add('hidden');
+            document.getElementById('speakPrompt').classList.add('hidden');
+            document.getElementById('feedbackMessage').classList.add('hidden');
+            
+            document.getElementById('taskText').innerText = `"${state.currentTaskData.text}"`;
+
+            updateUI();
+        }
+
+        function updatePart(part, change) {
+            let newVal = state.currentMonster[part] + change;
+            if (newVal < 1) newVal = 1;
+            if (newVal > 7) newVal = 7;
+            state.currentMonster[part] = newVal;
+            updateUI();
+        }
+
+        function updateUI() {
+            drawMonster(state.currentMonster);
+            document.getElementById('count-eyes').innerText = state.currentMonster.eyes;
+            document.getElementById('count-arms').innerText = state.currentMonster.arms;
+            document.getElementById('count-legs').innerText = state.currentMonster.legs;
+            document.getElementById('count-horns').innerText = state.currentMonster.horns;
+            document.getElementById('count-teeth').innerText = state.currentMonster.teeth;
+        }
+
+        function checkBuild() {
+            const targetVals = state.currentTaskData.targetValues;
+            const activeParts = state.currentTaskData.activeParts;
+            const currentVals = state.currentMonster;
+            
+            let allCorrect = true;
+            activeParts.forEach(part => {
+                if (currentVals[part] !== targetVals[part]) {
+                    allCorrect = false;
+                }
+            });
+
+            if (allCorrect) {
+                sounds.correct.play();
+                state.score += 10;
+                document.getElementById('scoreDisplay').innerText = state.score;
+                showFeedback("Perfect! Переходим к следующему шагу.", true);
+                setTimeout(showPhaseTwo, 1000); // Небольшая задержка перед фазой чтения
+            } else {
+                sounds.wrong.play();
+                // Развернутое объяснение ошибки (согласно предпочтениям)
+                const expectedPartsStr = activeParts.map(p => `${targetVals[p]} ${PART_VOCAB[p][targetVals[p] === 1 ? 'sing' : 'plur']}`).join(', ');
+                const currentPartsStr = activeParts.map(p => `${currentVals[p]} ${PART_VOCAB[p][currentVals[p] === 1 ? 'sing' : 'plur']}`).join(', ');
+                showFeedback(`❌ Ошибка!<br><span class="text-sm">Ожидалось: <b>${expectedPartsStr}</b><br>У тебя: <b>${currentPartsStr}</b></span>`, false);
+            }
+        }
+
+        function showPhaseTwo() {
+            state.phase = 'speak';
+            document.getElementById('controlsArea').classList.add('hidden');
+            document.getElementById('taskArea').classList.add('hidden'); 
+            document.getElementById('speakingArea').classList.remove('hidden');
+            document.getElementById('speakPrompt').classList.remove('hidden');
+            document.getElementById('feedbackMessage').classList.add('hidden'); // Убираем сообщение о успехе
+            
+            generateSpeakingOptions();
+        }
+
+        function generateSpeakingOptions() {
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            const correctText = state.currentTaskData.text;
+            
+            let wrong1 = correctText;
+            for(let n of NUM_WORDS) {
+                if (wrong1.includes(n) && n !== "zero") {
+                    let randN = NUM_WORDS[Math.floor(Math.random()*7)+1];
+                    while(randN === n) randN = NUM_WORDS[Math.floor(Math.random()*7)+1];
+                    wrong1 = wrong1.replace(n, randN);
+                    break;
+                }
+            }
+
+            let wrong2 = correctText.includes("have got") ? 
+                         correctText.replace("have got", "has got") : 
+                         correctText.replace("has got", "have got");
+
+            if(wrong1 === correctText) wrong1 = "I have got 100 eyes.";
+
+            let options = [correctText, wrong1, wrong2];
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full bg-white border-2 border-indigo-100 hover:bg-indigo-50 text-gray-700 font-bold py-4 px-4 rounded-lg text-lg text-left transition shadow-sm";
+                btn.innerText = opt;
+                btn.onclick = () => checkSpeaking(opt, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkSpeaking(text, btn) {
+            if (text === state.currentTaskData.text) {
+                btn.classList.replace('border-indigo-100', 'border-green-500');
+                btn.classList.add('bg-green-100', 'text-green-800');
+                sounds.correct.play();
+                state.score += 10;
+                document.getElementById('scoreDisplay').innerText = state.score;
+                
+                showFeedback("Правильно прочитано! 🌟", true);
+                setTimeout(nextLevel, 2000);
+            } else {
+                btn.classList.replace('border-indigo-100', 'border-red-500');
+                btn.classList.add('bg-red-100', 'text-red-800');
+                sounds.wrong.play();
+                // Развернутое объяснение
+                showFeedback(`❌ Неверно!<br><span class="text-sm">Правильный вариант:<br><b>"${state.currentTaskData.text}"</b></span>`, false);
+            }
+        }
+
+        function showFeedback(msg, isGood) {
+            const el = document.getElementById('feedbackMessage');
+            el.innerHTML = msg; // Используем innerHTML для поддержки тегов <br> и <b>
+            el.classList.remove('hidden', 'text-green-700', 'text-red-700', 'bg-green-100', 'bg-red-100', 'border-green-300', 'border-red-300');
+            el.classList.add(isGood ? 'text-green-700' : 'text-red-700');
+            el.classList.add(isGood ? 'bg-green-100' : 'bg-red-100');
+            el.classList.add(isGood ? 'border-green-300' : 'border-red-300');
+        }
+
+        function endGame() {
+            document.getElementById('gameUI').classList.remove('flex');
+            document.getElementById('gameUI').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('hidden');
+            document.getElementById('endScreen').classList.add('flex');
+            
+            const maxScore = gameConfig.totalQuestions * 20; // 10 вопросов * (10 за билд + 10 за чтение) = 200
+            document.getElementById('finalScore').innerText = `${state.score} / ${maxScore}`;
+
+            // Логика отображения секретного слова (85% и выше)
+            const percentage = (state.score / maxScore) * 100;
+            if (percentage >= 85) {
+                document.getElementById('secretWordContainer').classList.remove('hidden');
+            }
+        }
+
+        function revealSecret() {
+            const btn = document.getElementById('btnSecret');
+            const display = document.getElementById('secretWordDisplay');
+            
+            btn.classList.add('hidden'); // Прячем кнопку
+            display.classList.remove('hidden'); // Показываем само слово
+        }
+
+        function toggleCriteria() {
+            document.getElementById('criteriaModal').classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>

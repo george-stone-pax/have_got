@@ -80,19 +80,19 @@
             if (!isInsideStepik && !isLocal) {
                 document.body.innerHTML = `
                     <div style="background:#000; color:#fff; height:100vh; display:flex;
-                                flex-direction:column; align-items:center; justify-content:center;
-                                font-family:sans-serif; text-align:center; padding:20px;">
+                               flex-direction:column; align-items:center; justify-content:center;
+                               font-family:sans-serif; text-align:center; padding:20px;">
                         <h1>⛔️ Доступ ограничен</h1>
-                        <p>Эта игра — часть платного курса. <br>
-                        Пожалуйста, вернитесь к обучению на Stepik.</p>
-                        <a href="https://stepik.org" style="color:#4ade80;">Перейти к курсу</a>
+                       <p>Эта игра — часть платного курса. <br>
+                       Пожалуйста, вернитесь к обучению на Stepik.</p>
+                       <a href="https://stepik.org" style="color:#4ade80;">Перейти к курсу</a>
                     </div>`;
-                window.stop();
+               window.stop();
             }
             
             // Блокировка прокрутки при нажатии стрелок (согласно прошлым требованиям)
             window.addEventListener('keydown', function(e) {
-                if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+               if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
                     e.preventDefault();
                 }
             }, false);
@@ -119,10 +119,10 @@
             <h2 class="text-2xl font-bold mb-2 text-center text-purple-600">Как играть?</h2>
             <ul class="list-disc pl-5 text-lg space-y-2">
                 <li>Внимательно читай заказ (сверху).</li>
-                <li>Настраивай только то, о чем просит монстр, с помощью кнопок «+» и «-».</li>
-                <li>Обращай внимание: <b>one tooth</b> (один зуб), но <b>two teeth</b> (два зуба).</li>
-                <li>Затем выбери правильное описание монстра из предложенных вариантов.</li>
-            </ul>
+               <li>Настраивай только то, о чем просит монстр, с помощью кнопок «+» и «-». За правильную сборку с первой попытки ты получишь 1 балл.</li>
+               <li>Обращай внимание: <b>one tooth</b> (один зуб), но <b>two teeth</b> (два зуба).</li>
+               <li>Затем выбери правильное описание монстра из предложенных вариантов. За верный ответ с первой попытки ты получишь еще 1 балл. Максимум за уровень - 2 балла!</li>
+           </ul>
         </div>
 
         <!-- Кнопки Теория и Старт -->
@@ -152,7 +152,7 @@
             </div>
             <button onclick="closeTheory()" class="mt-6 w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg shadow-md transition text-xl">
                 Я всё понял!
-            </button>
+           </button>
         </div>
     </div>
 
@@ -278,14 +278,14 @@
             </button>
             <button onclick="location.reload()" class="bg-green-500 text-white font-bold py-4 px-6 rounded-lg hover:bg-green-600 shadow-lg text-xl transition">
                 Играть снова
-            </button>
+           </button>
         </div>
 
         <!-- Секретное слово (скрыто по умолчанию) -->
         <div id="secretWordContainer" class="hidden mt-6 w-full max-w-sm">
             <button onclick="revealSecret()" id="btnSecret" class="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:from-pink-600 hover:to-rose-600 transition w-full text-xl animate-pulse">
                 🎁 Показать СЕКРЕТНОЕ СЛОВО
-            </button>
+           </button>
             <div id="secretWordDisplay" class="hidden text-2xl font-bold text-rose-600 bg-rose-100 p-4 rounded-lg border-2 border-rose-300 text-center w-full mt-2 transition-all">
                 Strong - Сильный
             </div>
@@ -328,8 +328,8 @@
         /* --- Fullscreen Feature --- */
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+               document.documentElement.requestFullscreen().catch(err => {
+                   console.log(`Error attempting to enable full-screen mode: ${err.message}`);
                 });
             } else {
                 if (document.exitFullscreen) {
@@ -340,16 +340,16 @@
 
         /* --- Theory / Menu Logic --- */
         function showTheory() {
-            document.getElementById('theoryModal').classList.remove('hidden');
+           document.getElementById('theoryModal').classList.remove('hidden');
         }
 
         function closeTheory() {
-            document.getElementById('theoryModal').classList.add('hidden');
+           document.getElementById('theoryModal').classList.add('hidden');
             // Разблокируем кнопку Старт
             const startBtn = document.getElementById('btnStartGame');
             startBtn.disabled = false;
-            startBtn.classList.remove('bg-gray-400', 'text-gray-600', 'cursor-not-allowed', 'border-gray-600');
-            startBtn.classList.add('bg-yellow-400', 'hover:bg-yellow-300', 'text-yellow-900', 'border-yellow-600');
+           startBtn.classList.remove('bg-gray-400', 'text-gray-600', 'cursor-not-allowed', 'border-gray-600');
+           startBtn.classList.add('bg-yellow-400', 'hover:bg-yellow-300', 'text-yellow-900', 'border-yellow-600');
             startBtn.innerHTML = 'START GAME';
         }
 
@@ -363,7 +363,9 @@
             score: 0,
             currentMonster: { eyes: 1, arms: 2, legs: 2, horns: 1, teeth: 2 },
             currentTaskData: null,
-            phase: 'build' 
+            phase: 'build',
+            madeMistakeBuild: false, // Отслеживание ошибки при сборке на текущем уровне
+            madeMistakeSpeak: false  // Отслеживание ошибки при выборе ответа на текущем уровне
         };
 
         const NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven"];
@@ -434,7 +436,7 @@
             
             const numLegs = data.legs;
             if (numLegs > 0) {
-                const startAngle = Math.PI / 4; 
+                const startAngle = Math.PI / 4;
                 const endAngle = 3 * Math.PI / 4;
                 
                 for(let i=0; i<numLegs; i++) {
@@ -498,7 +500,7 @@
 
             // --- BODY ---
             ctx.fillStyle = (state.currentTaskData && state.currentTaskData.subject === "He") ? '#60A5FA' : 
-                            (state.currentTaskData && state.currentTaskData.subject === "She") ? '#F472B6' : '#A78BFA';
+                           (state.currentTaskData && state.currentTaskData.subject === "She") ? '#F472B6' : '#A78BFA';
             ctx.strokeStyle = '#4C1D95';
             ctx.lineWidth = 4;
             
@@ -538,7 +540,7 @@
                     ctx.lineWidth = 2;
                     ctx.stroke();
 
-                    ctx.globalCompositeOperation = 'source-atop';
+                   ctx.globalCompositeOperation = 'source-atop';
                     ctx.strokeStyle = '#D97706';
                     ctx.lineWidth = 2;
                     for(let s=1; s<4; s++) {
@@ -612,19 +614,19 @@
 
         /* --- Game Logic --- */
         function startGame() {
-            document.getElementById('startScreen').classList.add('hidden');
-            document.getElementById('gameUI').classList.remove('hidden');
-            document.getElementById('gameUI').classList.add('flex');
-            
-            sounds.bgMusic.play().catch(e => console.log("Audio play failed"));
-            resetGame();
+           document.getElementById('startScreen').classList.add('hidden');
+           document.getElementById('gameUI').classList.remove('hidden');
+           document.getElementById('gameUI').classList.add('flex');
+           
+           sounds.bgMusic.play().catch(e => console.log("Audio play failed"));
+           resetGame();
         }
 
         function resetGame() {
             state.score = 0;
             state.currentLevel = 0;
-            document.getElementById('scoreDisplay').innerText = state.score;
-            nextLevel();
+           document.getElementById('scoreDisplay').innerText = state.score;
+           nextLevel();
         }
 
         function nextLevel() {
@@ -634,7 +636,11 @@
                 return;
             }
 
-            document.getElementById('levelDisplay').innerText = `${state.currentLevel}/${gameConfig.totalQuestions}`;
+            // Сбрасываем флаги ошибок для нового уровня
+            state.madeMistakeBuild = false;
+            state.madeMistakeSpeak = false;
+
+           document.getElementById('levelDisplay').innerText = `${state.currentLevel}/${gameConfig.totalQuestions}`;
             state.phase = 'build';
             
             state.currentMonster = { 
@@ -647,13 +653,13 @@
             
             state.currentTaskData = generateTask();
             
-            document.getElementById('taskArea').classList.remove('hidden');
-            document.getElementById('controlsArea').classList.remove('hidden');
-            document.getElementById('speakingArea').classList.add('hidden');
-            document.getElementById('speakPrompt').classList.add('hidden');
-            document.getElementById('feedbackMessage').classList.add('hidden');
+           document.getElementById('taskArea').classList.remove('hidden');
+           document.getElementById('controlsArea').classList.remove('hidden');
+           document.getElementById('speakingArea').classList.add('hidden');
+           document.getElementById('speakPrompt').classList.add('hidden');
+           document.getElementById('feedbackMessage').classList.add('hidden');
             
-            document.getElementById('taskText').innerText = `"${state.currentTaskData.text}"`;
+           document.getElementById('taskText').innerText = `"${state.currentTaskData.text}"`;
 
             updateUI();
         }
@@ -668,11 +674,11 @@
 
         function updateUI() {
             drawMonster(state.currentMonster);
-            document.getElementById('count-eyes').innerText = state.currentMonster.eyes;
-            document.getElementById('count-arms').innerText = state.currentMonster.arms;
-            document.getElementById('count-legs').innerText = state.currentMonster.legs;
-            document.getElementById('count-horns').innerText = state.currentMonster.horns;
-            document.getElementById('count-teeth').innerText = state.currentMonster.teeth;
+           document.getElementById('count-eyes').innerText = state.currentMonster.eyes;
+           document.getElementById('count-arms').innerText = state.currentMonster.arms;
+           document.getElementById('count-legs').innerText = state.currentMonster.legs;
+           document.getElementById('count-horns').innerText = state.currentMonster.horns;
+           document.getElementById('count-teeth').innerText = state.currentMonster.teeth;
         }
 
         function checkBuild() {
@@ -689,13 +695,19 @@
 
             if (allCorrect) {
                 sounds.correct.play();
-                state.score += 10;
-                document.getElementById('scoreDisplay').innerText = state.score;
+                
+                // Начисляем балл, только если не было ошибок на этом этапе
+                if (!state.madeMistakeBuild) {
+                    state.score += 1;
+                }
+
+               document.getElementById('scoreDisplay').innerText = state.score;
                 showFeedback("Perfect! Переходим к следующему шагу.", true);
-                setTimeout(showPhaseTwo, 1000); // Небольшая задержка перед фазой чтения
+               setTimeout(showPhaseTwo, 1000); // Небольшая задержка перед фазой чтения
             } else {
-                sounds.wrong.play();
-                // Развернутое объяснение ошибки (согласно предпочтениям)
+                state.madeMistakeBuild = true; // Игрок совершил ошибку
+               sounds.wrong.play();
+                // Развернутое объяснение ошибки
                 const expectedPartsStr = activeParts.map(p => `${targetVals[p]} ${PART_VOCAB[p][targetVals[p] === 1 ? 'sing' : 'plur']}`).join(', ');
                 const currentPartsStr = activeParts.map(p => `${currentVals[p]} ${PART_VOCAB[p][currentVals[p] === 1 ? 'sing' : 'plur']}`).join(', ');
                 showFeedback(`❌ Ошибка!<br><span class="text-sm">Ожидалось: <b>${expectedPartsStr}</b><br>У тебя: <b>${currentPartsStr}</b></span>`, false);
@@ -704,11 +716,11 @@
 
         function showPhaseTwo() {
             state.phase = 'speak';
-            document.getElementById('controlsArea').classList.add('hidden');
-            document.getElementById('taskArea').classList.add('hidden'); 
-            document.getElementById('speakingArea').classList.remove('hidden');
-            document.getElementById('speakPrompt').classList.remove('hidden');
-            document.getElementById('feedbackMessage').classList.add('hidden'); // Убираем сообщение о успехе
+           document.getElementById('controlsArea').classList.add('hidden');
+           document.getElementById('taskArea').classList.add('hidden'); 
+           document.getElementById('speakingArea').classList.remove('hidden');
+           document.getElementById('speakPrompt').classList.remove('hidden');
+           document.getElementById('feedbackMessage').classList.add('hidden'); // Убираем сообщение о успехе
             
             generateSpeakingOptions();
         }
@@ -730,8 +742,8 @@
             }
 
             let wrong2 = correctText.includes("have got") ? 
-                         correctText.replace("have got", "has got") : 
-                         correctText.replace("has got", "have got");
+                        correctText.replace("have got", "has got") : 
+                        correctText.replace("has got", "have got");
 
             if(wrong1 === correctText) wrong1 = "I have got 100 eyes.";
 
@@ -749,16 +761,22 @@
 
         function checkSpeaking(text, btn) {
             if (text === state.currentTaskData.text) {
-                btn.classList.replace('border-indigo-100', 'border-green-500');
-                btn.classList.add('bg-green-100', 'text-green-800');
+               btn.classList.replace('border-indigo-100', 'border-green-500');
+               btn.classList.add('bg-green-100', 'text-green-800');
                 sounds.correct.play();
-                state.score += 10;
-                document.getElementById('scoreDisplay').innerText = state.score;
+                
+                // Начисляем балл, только если не было ошибок на этом этапе
+                if (!state.madeMistakeSpeak) {
+                    state.score += 1;
+                }
+
+               document.getElementById('scoreDisplay').innerText = state.score;
                 
                 showFeedback("Правильно прочитано! 🌟", true);
                 setTimeout(nextLevel, 2000);
             } else {
-                btn.classList.replace('border-indigo-100', 'border-red-500');
+                state.madeMistakeSpeak = true; // Игрок совершил ошибку
+               btn.classList.replace('border-indigo-100', 'border-red-500');
                 btn.classList.add('bg-red-100', 'text-red-800');
                 sounds.wrong.play();
                 // Развернутое объяснение
@@ -776,18 +794,18 @@
         }
 
         function endGame() {
-            document.getElementById('gameUI').classList.remove('flex');
-            document.getElementById('gameUI').classList.add('hidden');
-            document.getElementById('endScreen').classList.remove('hidden');
-            document.getElementById('endScreen').classList.add('flex');
+           document.getElementById('gameUI').classList.remove('flex');
+           document.getElementById('gameUI').classList.add('hidden');
+           document.getElementById('endScreen').classList.remove('hidden');
+           document.getElementById('endScreen').classList.add('flex');
             
-            const maxScore = gameConfig.totalQuestions * 20; // 10 вопросов * (10 за билд + 10 за чтение) = 200
-            document.getElementById('finalScore').innerText = `${state.score} / ${maxScore}`;
+            const maxScore = gameConfig.totalQuestions * 2; // 10 вопросов * 2 балла (1 за билд, 1 за чтение) = 20
+           document.getElementById('finalScore').innerText = `${state.score} / ${maxScore}`;
 
             // Логика отображения секретного слова (85% и выше)
             const percentage = (state.score / maxScore) * 100;
             if (percentage >= 85) {
-                document.getElementById('secretWordContainer').classList.remove('hidden');
+               document.getElementById('secretWordContainer').classList.remove('hidden');
             }
         }
 
@@ -800,7 +818,7 @@
         }
 
         function toggleCriteria() {
-            document.getElementById('criteriaModal').classList.toggle('hidden');
+           document.getElementById('criteriaModal').classList.toggle('hidden');
         }
     </script>
 </body>

@@ -64,32 +64,7 @@
 </head>
 <body class="min-h-screen flex flex-col items-center relative bg-slate-100">
 
-    <script>
-        // ЗАЩИТА ИГРЫ С ИСКЛЮЧЕНИЕМ ДЛЯ LOCALHOST
-        (function() {
-            const allowedDomains = ['stepik.org', 'welcome.stepik.org'];
-            const referrer = document.referrer;
-            const hostname = window.location.hostname;
-            const protocol = window.location.protocol;
-            
-            // Проверка на запуск с компьютера или локального сервера
-            const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || protocol === 'file:' || hostname === '';
-            // Проверка на встроенность в Stepik
-            const isInsideStepik = allowedDomains.some(domain => referrer.includes(domain));
-
-            if (!isInsideStepik && !isLocal) {
-                document.body.innerHTML = `
-                    <div style="background:#000; color:#fff; height:100vh; display:flex;
-                               flex-direction:column; align-items:center; justify-content:center;
-                               font-family:sans-serif; text-align:center; padding:20px;">
-                        <h1>⛔️ Доступ ограничен</h1>
-                       <p>Эта игра — часть платного курса. <br>
-                       Пожалуйста, вернитесь к обучению на Stepik.</p>
-                       <a href="https://stepik.org" style="color:#4ade80;">Перейти к курсу</a>
-                    </div>`;
-               window.stop();
-            }
-            
+   
             // Блокировка прокрутки при нажатии стрелок (согласно прошлым требованиям)
             window.addEventListener('keydown', function(e) {
                if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
@@ -823,3 +798,4 @@
     </script>
 </body>
 </html>
+

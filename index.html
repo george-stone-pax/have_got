@@ -64,17 +64,15 @@
 </head>
 <body class="min-h-screen flex flex-col items-center relative bg-slate-100">
 
-   
-            // Блокировка прокрутки при нажатии стрелок (согласно прошлым требованиям)
-            window.addEventListener('keydown', function(e) {
-               if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
-                    e.preventDefault();
-                }
-            }, false);
-        })();
+    <script>
+        // Блокировка прокрутки при нажатии стрелок (согласно прошлым требованиям)
+        window.addEventListener('keydown', function(e) {
+            if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+                e.preventDefault();
+            }
+        }, false);
     </script>
 
-    <!-- Top Tools (Volume & Fullscreen) -->
     <div class="fixed top-4 right-4 z-[60] flex gap-2">
         <div class="bg-white p-2 rounded-lg shadow-md flex items-center gap-2 border border-gray-200">
             <span class="text-xl">🎵</span>
@@ -85,7 +83,6 @@
         </button>
     </div>
 
-    <!-- Start Screen -->
     <div id="startScreen" class="fixed inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 z-50 flex flex-col items-center justify-center text-white text-center p-4 overflow-y-auto">
         <h1 class="text-5xl md:text-6xl font-bold mb-4 drop-shadow-md mt-10">Monster Lab 2.0 🧪</h1>
         <p class="text-xl mb-6">Тема: Have got / Has got (Singular & Plural)</p>
@@ -100,7 +97,6 @@
            </ul>
         </div>
 
-        <!-- Кнопки Теория и Старт -->
         <button onclick="showTheory()" class="btn-game bg-cyan-400 hover:bg-cyan-300 text-cyan-900 font-bold py-3 px-8 rounded-full text-xl shadow-lg border-b-4 border-cyan-600 mb-4 transition w-64">
             📚 ТЕОРИЯ
         </button>
@@ -109,7 +105,6 @@
         </button>
     </div>
 
-    <!-- Theory Modal -->
     <div id="theoryModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4">
         <div class="bg-white text-gray-800 rounded-xl shadow-2xl p-6 max-w-lg w-full relative">
             <h2 class="text-3xl font-bold text-cyan-600 mb-4 border-b-2 border-cyan-100 pb-2">Теория: Have got / Has got</h2>
@@ -131,31 +126,24 @@
         </div>
     </div>
 
-    <!-- Game UI -->
     <div id="gameUI" class="hidden w-full max-w-4xl flex flex-col items-center p-4 min-h-screen justify-start md:justify-center py-8 pb-32">
         
-        <!-- Score Display (Top Left) -->
         <div class="fixed top-4 left-4 z-[40] bg-white px-4 py-2 rounded-lg shadow-md border border-green-200 text-2xl font-bold text-green-600">
             Score: <span id="scoreDisplay">0</span>
         </div>
 
-        <!-- Main Game Area -->
         <div class="flex flex-col md:flex-row gap-6 w-full items-start justify-center pt-8 md:pt-0">
             
-            <!-- Left: The Monster Canvas -->
             <div class="relative animate-float self-center">
                 <canvas id="monsterCanvas" width="350" height="400" class="monster-canvas bg-white"></canvas>
-                <!-- Speaking bubble prompt -->
                 <div id="speakPrompt" class="hidden absolute -top-10 left-1/2 transform -translate-x-1/2 w-64 bg-yellow-100 border-2 border-yellow-400 p-2 rounded text-center shadow-lg bubble z-20 group cursor-help transition-all duration-300">
                     <p class="text-sm font-bold text-yellow-800 block group-hover:hidden">🗣️ Say it loud!</p>
                     <p class="text-sm font-bold text-yellow-800 hidden group-hover:block">🗣️ Скажи это вслух!</p>
                 </div>
             </div>
 
-            <!-- Right: Controls & Task -->
             <div class="flex flex-col w-full md:w-1/2 bg-white p-4 rounded-xl shadow-lg border-2 border-indigo-100">
                 
-                <!-- Task Text (Reading Phase) -->
                 <div id="taskArea" class="mb-4 text-center">
                     <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 shadow-inner">
                         <p id="taskText" class="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed">
@@ -164,9 +152,7 @@
                     </div>
                 </div>
 
-                <!-- Controls (Building Phase) -->
                 <div id="controlsArea" class="space-y-3">
-                    <!-- Eyes Control -->
                     <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
                         <span class="text-lg w-24 font-bold text-gray-700">👁️ Eyes</span>
                         <div class="flex items-center gap-2">
@@ -176,7 +162,6 @@
                         </div>
                     </div>
                     
-                    <!-- Horns Control -->
                     <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
                         <span class="text-lg w-24 font-bold text-gray-700">😈 Horns</span>
                         <div class="flex items-center gap-2">
@@ -186,7 +171,6 @@
                         </div>
                     </div>
 
-                    <!-- Teeth Control -->
                     <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
                         <span class="text-lg w-24 font-bold text-gray-700">🦷 Teeth</span>
                         <div class="flex items-center gap-2">
@@ -196,7 +180,6 @@
                         </div>
                     </div>
 
-                    <!-- Arms Control -->
                     <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
                         <span class="text-lg w-24 font-bold text-gray-700">💪 Arms</span>
                         <div class="flex items-center gap-2">
@@ -206,7 +189,6 @@
                         </div>
                     </div>
                     
-                    <!-- Legs Control -->
                     <div class="control-row flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
                         <span class="text-lg w-24 font-bold text-gray-700">🦵 Legs</span>
                         <div class="flex items-center gap-2">
@@ -221,27 +203,22 @@
                     </button>
                 </div>
 
-                <!-- Speaking/Verification Phase (Hidden initially) -->
                 <div id="speakingArea" class="hidden space-y-3">
                     <p class="text-center text-gray-600 font-bold">Найди правильное описание:</p>
                     <div id="optionsContainer" class="grid grid-cols-1 gap-3">
-                        <!-- Options generated by JS -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Feedback Area (Enhanced for Explanations) -->
                 <div id="feedbackMessage" class="hidden mt-4 text-center font-bold p-3 rounded-lg bg-opacity-20 border-2"></div>
 
             </div>
         </div>
 
-        <!-- Order Display (Bottom Left) -->
         <div class="fixed bottom-4 left-4 z-[40] bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200 text-xl font-bold text-gray-700">
             Order: <span id="levelDisplay">1/10</span>
         </div>
     </div>
 
-    <!-- End Screen -->
     <div id="endScreen" class="hidden fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
         <h2 class="text-5xl font-bold text-gray-800 mb-2 mt-8">Game Over!</h2>
         <div class="text-7xl mb-4">🎉</div>
@@ -256,7 +233,6 @@
            </button>
         </div>
 
-        <!-- Секретное слово (скрыто по умолчанию) -->
         <div id="secretWordContainer" class="hidden mt-6 w-full max-w-sm">
             <button onclick="revealSecret()" id="btnSecret" class="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:from-pink-600 hover:to-rose-600 transition w-full text-xl animate-pulse">
                 🎁 Показать СЕКРЕТНОЕ СЛОВО
@@ -266,7 +242,6 @@
             </div>
         </div>
 
-        <!-- Criteria Modal -->
         <div id="criteriaModal" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl border-4 border-purple-200 shadow-2xl w-80 z-[60]">
             <h3 class="font-bold text-xl mb-4 text-center text-purple-700">Таблица оценок</h3>
             <ul class="space-y-3 text-base">
@@ -773,7 +748,7 @@
            document.getElementById('gameUI').classList.add('hidden');
            document.getElementById('endScreen').classList.remove('hidden');
            document.getElementById('endScreen').classList.add('flex');
-            
+           
             const maxScore = gameConfig.totalQuestions * 2; // 10 вопросов * 2 балла (1 за билд, 1 за чтение) = 20
            document.getElementById('finalScore').innerText = `${state.score} / ${maxScore}`;
 
@@ -798,4 +773,3 @@
     </script>
 </body>
 </html>
-
